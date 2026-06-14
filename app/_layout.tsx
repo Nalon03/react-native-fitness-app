@@ -1,24 +1,81 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { Stack } from 'expo-router';
+import { DefaultTheme, ThemeProvider } from '@react-navigation/native';
+import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { useEffect } from 'react';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import 'react-native-reanimated';
+import { Toast } from '@/components/Toast';
+import { AppProvider, useApp } from './context';
 
-import { useColorScheme } from '@/hooks/use-color-scheme';
+function NavigationGuard() {
+  const { profile, loaded } = useApp();
+  const segments = useSegments();
+  const router = useRouter();
 
-export const unstable_settings = {
-  anchor: '(tabs)',
-};
+  useEffect(() => {
+    if (!loaded) return;
+    const guestScreens = ['welcome', 'onboarding'];
+    const onGuestScreen = guestScreens.includes(segments[0] as string);
+    if (!profile && !onGuestScreen) {
+      router.replace('/welcome');
+    } else if (profile && onGuestScreen) {
+      router.replace('/(tabs)');
+    }
+  }, [loaded, profile, segments]);
 
-export default function RootLayout() {
-  const colorScheme = useColorScheme();
+  return null;
+}
 
+function LoadingOverlay() {
+  const { loaded } = useApp();
+  if (loaded) return null;
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
-      </Stack>
-      <StatusBar style="auto" />
-    </ThemeProvider>
+    <View style={styles.loadingOverlay}>
+      <ActivityIndicator color="#16a34a" size="large" />
+    </View>
   );
 }
+
+function GlobalToast() {
+  const { toast } = useApp();
+  return (
+    <Toast message={toast?.message ?? ''} type={toast?.type ?? 'success'} visible={!!toast} />
+  );
+}
+
+export default function RootLayout() {
+  return (
+    <AppProvider>
+      <ThemeProvider value={DefaultTheme}>
+        <NavigationGuard />
+        <Stack>
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="welcome" options={{ headerShown: false }} />
+          <Stack.Screen name="onboarding" options={{ headerShown: false }} />
+          <Stack.Screen
+            name="profile"
+            options={{
+              title: 'Edit Profile',
+              headerTintColor: '#16a34a',
+              headerShadowVisible: false,
+              headerStyle: { backgroundColor: '#f8fafc' },
+            }}
+          />
+        </Stack>
+        <LoadingOverlay />
+        <GlobalToast />
+        <StatusBar style="dark" />
+      </ThemeProvider>
+    </AppProvider>
+  );
+}
+
+const styles = StyleSheet.create({
+  loadingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: '#f8fafc',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 999,
+  },
+});
