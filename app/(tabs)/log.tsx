@@ -20,7 +20,7 @@ const ACTIVITIES = [
 const CALORIE_GOAL = 200;
 
 export default function LogScreen() {
-  const { profile, activities, addActivity, showToast } = useApp();
+  const { profile, activities, addActivity, showToast, showCelebration } = useApp();
   const insets = useSafeAreaInsets();
 
   const [selected, setSelected] = useState<string | null>(null);
@@ -60,7 +60,7 @@ export default function LogScreen() {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
 
     if (todayTotal >= CALORIE_GOAL) {
-      showToast(`🎉 Goal reached! ${todayTotal} kcal burned today!`);
+      showCelebration(todayTotal);
     } else {
       showToast(`Logged! ${calories} kcal burned`);
     }

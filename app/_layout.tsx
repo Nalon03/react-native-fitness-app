@@ -4,6 +4,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import 'react-native-reanimated';
+import { CelebrationModal } from '@/components/CelebrationModal';
 import { Toast } from '@/components/Toast';
 import { AppProvider, useApp } from './context';
 
@@ -43,6 +44,17 @@ function GlobalToast() {
   );
 }
 
+function GlobalCelebration() {
+  const { celebration, hideCelebration } = useApp();
+  return (
+    <CelebrationModal
+      visible={celebration !== null}
+      calories={celebration ?? 0}
+      onClose={hideCelebration}
+    />
+  );
+}
+
 export default function RootLayout() {
   return (
     <AppProvider>
@@ -64,6 +76,7 @@ export default function RootLayout() {
         </Stack>
         <LoadingOverlay />
         <GlobalToast />
+        <GlobalCelebration />
         <StatusBar style="dark" />
       </ThemeProvider>
     </AppProvider>

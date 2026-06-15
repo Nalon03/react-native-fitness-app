@@ -18,19 +18,25 @@ type Ctx = {
   addActivity: (a: ActivityLog) => void;
   toast: ToastData;
   showToast: (msg: string, type?: 'success' | 'error') => void;
+  celebration: number | null;
+  showCelebration: (calories: number) => void;
+  hideCelebration: () => void;
   loaded: boolean;
   logout: () => void;
 };
 
 const AppContext = createContext<Ctx>({
   profile: null, setProfile: () => {}, activities: [],
-  addActivity: () => {}, toast: null, showToast: () => {}, loaded: false, logout: () => {},
+  addActivity: () => {}, toast: null, showToast: () => {},
+  celebration: null, showCelebration: () => {}, hideCelebration: () => {},
+  loaded: false, logout: () => {},
 });
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const [profile, setProfileState] = useState<Profile | null>(null);
   const [activities, setActivities] = useState<ActivityLog[]>([]);
   const [toast, setToast] = useState<ToastData>(null);
+  const [celebration, setCelebration] = useState<number | null>(null);
   const [loaded, setLoaded] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -62,6 +68,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     timer.current = setTimeout(() => setToast(null), 3000);
   }
 
+  function showCelebration(calories: number) {
+    setCelebration(calories);
+  }
+
+  function hideCelebration() {
+    setCelebration(null);
+  }
+
   function logout() {
     AsyncStorage.multiRemove(['@profile', '@activities']);
     setProfileState(null);
@@ -69,7 +83,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <AppContext.Provider value={{ profile, setProfile, activities, addActivity, toast, showToast, loaded, logout }}>
+    <AppContext.Provider value={{ profile, setProfile, activities, addActivity, toast, showToast, celebration, showCelebration, hideCelebration, loaded, logout }}>
       {children}
     </AppContext.Provider>
   );
